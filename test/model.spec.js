@@ -8,7 +8,8 @@ describe('generator-api:model', () => {
   describe('Run yeoman model sub generator', () => {
     before(() => helpers.run(path.join(__dirname, '../generators/model'))
       .withPrompts({
-        models: ['newmodel1', 'newmodel2']
+        models: ['newmodel1', 'newmodel2'],
+        databaseEngine: 'mongoose'
       })
       .toPromise())
 

@@ -14,40 +14,57 @@ describe('generator-api', () => {
       authorEmail: 'authorEmail',
       models: ['foo', 'bar', 'BazFoo'],
       databaseName: 'databaseName',
+      databaseEngine: 'sequelize',
       useDocker: false
     })
       .toPromise())
 
-    // Test included files
-    ;[{
-      desc: 'generates an index.js file',
-      files: ['index.js']
-    }, {
-      desc: 'generates a router.js file',
-      files: ['routes.js']
-    }, {
-      desc: 'generates a package.json file',
-      files: ['package.json']
-    }, {
-      desc: 'generates a .eslintignore file',
-      files: ['.eslintignore']
-    }, {
-      desc: 'generates a .eslintrc.json file',
-      files: ['.eslintrc.json']
-    }, {
-      desc: 'generates a .gitignore file',
-      files: ['.gitignore']
-    }, {
-      desc: 'generates a config.js file',
-      files: ['config.js']
-    }, {
-      desc: 'generates a README.md file',
-      files: ['README.md']
-    }].forEach((fileCase) => {
-      it(fileCase.desc, () => {
-        assert.file(fileCase.files)
-      })
-    })
+      // Test included files
+      ;[{
+        desc: 'generates an index.js file',
+        files: ['index.js']
+      },
+      {
+        desc: 'generates a router.js file',
+        files: ['routes.js']
+      },
+      {
+        desc: 'generates a package.json file',
+        files: ['package.json']
+      },
+      {
+        desc: 'generates a .eslintignore file',
+        files: ['.eslintignore']
+      },
+      {
+        desc: 'generates a .eslintrc.json file',
+        files: ['.eslintrc.json']
+      },
+      {
+        desc: 'generates a .gitignore file',
+        files: ['.gitignore']
+      },
+      {
+        desc: 'generates the configuration files',
+        files: [
+          'config/index.js',
+          'config/init.js',
+          // 'config/logger.js',
+          'config/development.js',
+          'config/staging.js',
+          'config/testing.js',
+          'config/production.js'
+        ]
+      },
+      {
+        desc: 'generates a README.md file',
+        files: ['README.md']
+      }
+    ].forEach(fileCase => {
+        it(fileCase.desc, () => {
+          assert.file(fileCase.files);
+        });
+      });
 
     // Test not included files
     ;[{
@@ -105,9 +122,9 @@ describe('generator-api', () => {
       describe('schemas', () => {
         it('generates a schema for each model', () => {
           assert.file([
-            'model/foo/schema.js',
-            'model/bar/schema.js',
-            'model/baz-foo/schema.js'
+            'model/foo/schemas/foo.js',
+            'model/bar/schemas/bar.js',
+            'model/baz-foo/schemas/baz-foo.js'
           ])
         })
       })
@@ -134,6 +151,7 @@ describe('generator-api', () => {
         authorEmail: 'authorEmail',
         models: ['foo'],
         databaseName: 'databaseName',
+        databaseEngine: 'mongoose',
         useDocker: true
       })
       .toPromise())
