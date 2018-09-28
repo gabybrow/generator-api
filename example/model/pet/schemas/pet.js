@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
+  const Pet = sequelize.define(
     'pet',
     {
       id: {
@@ -24,4 +24,6 @@ module.exports = (sequelize, DataTypes) => {
       freezeTableName: true
     }
   );
+
+  return Pet;
 };

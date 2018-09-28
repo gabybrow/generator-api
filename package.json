@@ -62,9 +62,6 @@
     "type": "git",
     "url": "git+https://github.com/ndelvalle/generator-api.git"
   },
-  "pre-commit": [
-    //"lint"
-  ],
   "standard": {
     "ignore": [
       "/generators/app/templates/model/",

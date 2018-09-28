@@ -1,53 +1,83 @@
+const errors = require('../services/errors');
+
 class Controller {
   constructor(facade) {
     this.facade = facade;
   }
 
-  create = (req, res, next) => {
-    this.facade.create(req.body)
-      .then(doc => res.status(201).json(doc))
-      .catch(err => next(err));
-  }
-
-  find = (req, res, next) => {
-    return this.facade.find(req.query)
+  find(req, res, next) {
+    return this.facade
+      .findWithCount(req.query)
       .then(collection => res.status(200).json(collection))
-      .catch(err => next(err));
+      .catch(next);
   }
 
-  findOne = (req, res, next) => {
-    return this.facade.findOne(req.query)
+  findOne(req, res, next) {
+    return this.facade
+      .findOne(req.query)
       .then(doc => res.status(200).json(doc))
-      .catch(err => next(err));
+      .catch(next);
   }
 
-  findById = (req, res, next) => {
-    return this.facade.findById(req.params.id)
-      .then((doc) => {
-        if (!doc) { return res.sendStatus(404) }
+  findById(req, res, next) {
+    return this.facade
+      .findById(req.params.id, req.query)
+      .then(doc => {
+        if (!doc) {
+          return next(errors.notFound);
+        }
         return res.status(200).json(doc);
       })
-      .catch(err => next(err));
+      .catch(next);
   }
 
-  update = (req, res, next) => {
-    this.facade.update({ _id: req.params.id }, req.body)
-      .then((results) => {
-        if (results.n < 1) { return res.sendStatus(404) }
-        if (results.nModified < 1) { return res.sendStatus(304) }
-        res.sendStatus(204);
+  create(req, res, next) {
+    return this.facade
+      .create(req.body)
+      .then(doc => {
+        res.status(201).json(doc);
       })
-      .catch(err => next(err));
+      .catch(next);
   }
 
-  remove = (req, res, next) => {
-    this.facade.remove({ _id: req.params.id })
-      .then((doc) => {
-        if (!doc) { return res.sendStatus(404) }
-        return res.sendStatus(204);
+  update(req, res, next) {
+    const conditions = { _id: req.params.id };
+
+    return this.facade
+      .update(conditions, req.body)
+      .then(doc => {
+        if (!doc) {
+          return next(errors.notFound);
+        }
+        return res.status(200).json(doc);
       })
-      .catch(err => next(err));
+      .catch(next);
   }
-};
+
+  remove(req, res, next) {
+    return this.facade
+      .remove(req.params.id)
+      .then(doc => {
+        if (!doc) {
+          return next(errors.notFound);
+        }
+        return res.status(204).end();
+      })
+      .catch(next);
+  }
+
+  itemById(req, res, next) {
+    return this.facade
+      .findById(req.params.id, req.query)
+      .then(doc => {
+        if (!doc) {
+          return next(errors.notFound);
+        }
+        req.item = doc;
+        next();
+      })
+      .catch(next);
+  }
+}
 
 module.exports = Controller;

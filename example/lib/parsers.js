@@ -70,11 +70,28 @@ const sort = options => {
   return sortVar;
 };
 
+const queryable = (query, attributes) => {
+  let queryableAttributes = _.filter(attributes, (elem) => elem.queryable);
+  if (!query.q) return {};
+  const options = {
+    $or: []
+  };
+  if (queryableAttributes.length < 1)
+    queryableAttributes = _.filter(attributes, (elem) => elem.type.constructor.key === 'STRING');
+  queryableAttributes.forEach(attr => {
+    const q = {};
+    q[attr.field] = { $iLike: '%' + query.q + '%' };
+    options.$or.push(q);
+  });
+  return options;
+};
+
 module.exports = {
   distinct,
   fields,
   filters,
   limit,
   offset,
-  sort
+  sort,
+  queryable
 };

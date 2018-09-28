@@ -1,6 +1,6 @@
 const Facade = require('../../lib/facade'),
-  petSchema = require('./schema');
+  Pet = require('../../model').pet;
 
-class PetFacade extends Facade { };
+class PetFacade extends Facade {}
 
-module.exports = new PetFacade('Pet', petSchema);
+module.exports = new PetFacade(Pet);

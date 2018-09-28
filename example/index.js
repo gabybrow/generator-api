@@ -1,26 +1,52 @@
 const express = require('express'),
-  mongoose = require('mongoose'),
+  migrationsManager = require('./migrations'),
   helmet = require('helmet'),
   bodyParser = require('body-parser'),
   morgan = require('morgan'),
-  bluebird = require('bluebird'),
   config = require('./config'),
-  routes = require('./routes');
+  routes = require('./routes'),
+  logger = require('./services/logger'),
+  initialize = require('./config/init')(),
+  errors = require('./model/errors'),
+  auth = require('./auth'),
+  // path = require('path'),
+  cors = require('cors');
 
-const app = express();
+const init = () => {
+  const app = express();
+  app.use(helmet());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
 
-mongoose.Promise = bluebird;
-mongoose.connect(config.mongo.url);
+  if (!config.isTesting) {
+    morgan.token('req-params', req => req.params);
+    app.use(
+      morgan(
+        '[:date[clf]] :remote-addr - Request ":method :url" with params: :req-params. Response status: :status.'
+      )
+    );
+  }
 
-app.use(helmet());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(morgan('tiny'));
+  app.use(cors());
+  // app.use('/static', express.static(path.join(__dirname, 'static')))
+  app.use('/api', routes);
+  app.use('/auth', auth);
+  app.use(errors.handle);
 
-app.use('/', routes);
+  module.exports = app;
 
-app.listen(config.server.port, () => {
-  console.log(`Magic happens on port ${config.server.port}`)
-});
+  Promise.resolve()
+    .then(() => {
+      if (!config.isTesting) {
+        return migrationsManager.check();
+      }
+    })
+    .then(() => {
+      app.listen(config.server.port, () => {
+        logger.info(`Listening on port: ${config.server.port}`);
+      });
+    })
+    .catch(logger.error);
+};
 
-module.exports = app;
+init();

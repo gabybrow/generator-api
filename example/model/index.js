@@ -18,14 +18,17 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 //     db[model.name] = model;
 //   });
 
-fs
-  .readdirSync(__dirname)
+fs.readdirSync(__dirname)
   .filter(file => {
     return fs.lstatSync(`${__dirname}/${file}`).isDirectory();
   })
   .forEach(file => {
-    const model = sequelize.import(path.join(__dirname, file, 'schema.js'));
-    db[model.name] = model;
+    // aca tengo todas las carpetas con models, ahora tengo que por cada una, traerme todas las que esten bajo schemas
+    // estoy en customer -> dame todas los archivos dentro de __dirname/file/schemas y despues xq cada js hacer el import
+    fs.readdirSync(path.join(__dirname, file, 'schemas')).forEach(schema => {
+      const model = sequelize.import(path.join(__dirname, file, 'schemas', schema));
+      db[model.name] = model;
+    });
   });
 
 Object.keys(db).forEach(modelName => {

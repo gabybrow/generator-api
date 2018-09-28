@@ -1,8 +1,8 @@
-# example-api
+# example
 
 [![generator-api](https://img.shields.io/badge/built%20with-generator--api-green.svg)](https://github.com/ndelvalle/generator-api)
 
-Example API
+
 
 
 

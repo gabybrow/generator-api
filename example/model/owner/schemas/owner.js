@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
-    'user',
+  const Owner = sequelize.define(
+    'owner',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -24,4 +24,6 @@ module.exports = (sequelize, DataTypes) => {
       freezeTableName: true
     }
   );
+
+  return Owner;
 };

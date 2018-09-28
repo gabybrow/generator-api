@@ -37,28 +37,60 @@ const render = (template, data) => {
   });
 };
 
-const send = (email, content) => {
+exports.send = (email, subject, content) => {
+  // return new Promise((resolve, reject) => {
+  // email = config.common.mailer.user; // TODO: TEMP
+  const transporter = nodemailer.createTransport({
+    host: config.common.mailer.host,
+    port: config.common.mailer.port,
+    secureConnection: config.common.mailer.secure,
+    auth: config.common.mailer.auth,
+    tls: config.common.mailer.tls
+  });
+  const newEmail = {
+    from: `"${config.common.mailer.from.displayName}" <${config.common.mailer.from.email}>`, // sender address
+    to: [email], // list of receivers
+    subject: subject, // Subject line
+    // html: content // html body
+    text: content
+  };
+
+  transporter.sendMail(newEmail, (error, info) => {
+    if (error) {
+      // reject(error);
+      console.log(error);
+    } else {
+      // resolve(info);
+      console.log(info);
+    }
+  });
+  // });
+};
+
+exports.sendAsync = (email, subject, content) => {
   return new Promise((resolve, reject) => {
-    email = config.common.mailer.user; // TODO: TEMP
+    // email = config.common.mailer.user; // TODO: TEMP
     const transporter = nodemailer.createTransport({
       host: config.common.mailer.host,
       port: config.common.mailer.port,
-      secure: config.common.mailer.secure,
+      secureConnection: config.common.mailer.secure,
       auth: config.common.mailer.auth,
       tls: config.common.mailer.tls
     });
     const newEmail = {
       from: `"${config.common.mailer.from.displayName}" <${config.common.mailer.from.email}>`, // sender address
       to: [email], // list of receivers
-      subject: `${config.common.mailer.subject}`, // Subject line
+      subject: subject, // Subject line
       html: content // html body
     };
 
     transporter.sendMail(newEmail, (error, info) => {
       if (error) {
         reject(error);
+        // console.log(error);
       } else {
         resolve(info);
+        // console.log(info);
       }
     });
   });
@@ -68,7 +100,7 @@ exports.sendEmail = (template, data, email) => {
   return new Promise((resolve, reject) => {
     render(template, data)
       .then(content => {
-        return send(email, content);
+        return exports.send(email, content);
       })
       .then(resolve)
       .catch(reject);

@@ -1,44 +1,140 @@
-const mongoose = require('mongoose');
+const qs = require('./parsers'),
+  _ = require('lodash');
 
 class Facade {
-  constructor(name, schema) {
-    this.Model = mongoose.model(name, schema);
+  constructor(Schema) {
+    this.Schema = Schema;
   }
 
-  create = body => {
-    const model = new this.Model(body);
-    return model.save();
+  getRequiredInclusions(includes) {
+    const res = { model: this.Schema };
+    if (includes) res.include = includes;
+    return res;
   }
 
-  find = (...args) => {
-    return this.Model
-      .find(...args)
-      .exec();
+  create(input) {
+    return this.Schema.create(input);
   }
 
-  findOne = (...args) => {
-    return this.Model
-      .findOne(...args)
-      .exec();
+  upsert(input) {
+    return this.Schema.upsert(input);
   }
 
-  findById = (...args) => {
-    return this.Model
-      .findById(...args)
-      .exec();
+  update(conditions, update) {
+    return this.Schema.update(conditions, update, { new: true });
   }
 
-  update = (...args) => {
-    return this.Model
-      .update(...args)
-      .exec();
+  find(query) {
+    let options = {},
+      related = {};
+    const keys = {};
+
+    keys.model = _.keys(this.Schema.rawAttributes);
+    keys.query = _.keys(query);
+    keys.filters = _.intersection(keys.model, keys.query);
+
+    related = _.pickBy(
+      this.Schema.associations,
+      association =>
+        _.intersection(keys.query, [association.foreignIdentifierField])
+          .length > 0
+    );
+    keys.related = _.keys(related);
+
+    options.attributes = qs.fields(query.fields);
+    // if (options.attributes == null)
+    //  options.attributes = query.attributes || null;
+    // else if (query.attributes !== undefined)
+    //  options.attributes.splice(options.attributes.length, 0, query.attributes);
+    options.limit = qs.limit(query.limit) || 50;
+    options.offset = qs.offset(query.offset);
+    options.order = qs.sort(query.sort);
+    options.include = query.include;
+    options.raw = query.raw || false;
+    options.where = qs.filters(_.pick(query, keys.filters));
+    options.where = Object.assign({}, options.where, query.where, qs.queryable(query, this.Schema.attributes));
+    options = _.omitBy(options, _.isNull);
+
+    return this.Schema.findAll(options);
   }
 
-  remove = (...args) => {
-    return this.Model
-      .remove(...args)
-      .exec();
+  findAndCount(query) {
+    const countQuery = {};
+    // countQuery.where = query.where;
+    countQuery.where = Object.assign({}, countQuery.where, query.where, qs.queryable(query, this.Schema.attributes));
+    if (query.include && query.include[0].required) countQuery.include = [query.include[0]];
+    return this.find(query).then(rows => {
+      return this.Schema.count(countQuery).then(count => {
+        if (rows.length === 0 && count !== 0) count = 0;
+        return { rows, count };
+      });
+    });
   }
-};
+
+  findWithCount(query) {
+    let options = {};
+    const keys = {};
+
+    keys.model = _.keys(this.Schema.rawAttributes);
+    keys.query = _.keys(query);
+    keys.filters = _.intersection(keys.model, keys.query);
+
+    options.attributes = qs.fields(query.fields);
+    options.limit = qs.limit(query.limit) || 50;
+    options.offset = qs.offset(query.offset);
+    options.order = qs.sort(query.sort);
+    options.include = query.include;
+    options.raw = query.raw || false;
+    options.where = qs.filters(_.pick(query, keys.filters));
+    options.where = Object.assign({}, options.where, query.where);
+    options = _.omitBy(options, _.isNull);
+
+    return this.Schema.findAndCountAll(options);
+  }
+
+  findOne(query) {
+    let options = {};
+    const keys = {};
+
+    keys.model = _.keys(this.Schema.rawAttributes);
+    keys.query = _.keys(query);
+    keys.filters = _.intersection(keys.model, keys.query);
+
+    options.attributes = qs.fields(query.fields);
+    options.limit = qs.limit(query.limit) || 50;
+    options.offset = qs.offset(query.offset);
+    options.order = qs.sort(query.sort);
+    options.include = query.include;
+    options.raw = query.raw || false;
+    options.where = qs.filters(_.pick(query, keys.filters));
+    options.where = Object.assign({}, options.where, query.where);
+    options = _.omitBy(options, _.isNull);
+
+    return this.Schema.findOne(options);
+  }
+
+  findById(id, query) {
+    let options = {};
+    const keys = {};
+
+    keys.model = _.keys(this.Schema.rawAttributes);
+    keys.query = _.keys(query);
+    keys.filters = _.intersection(keys.model, keys.query);
+
+    options.attributes = qs.fields(query.fields);
+    options.limit = qs.limit(query.limit) || 50;
+    options.offset = qs.offset(query.offset);
+    options.order = qs.sort(query.sort);
+    options.include = query.include;
+    options.where = qs.filters(_.pick(query, keys.filters));
+    options.where = Object.assign({}, options.where, query.where);
+    options = _.omitBy(options, _.isNull);
+    return this.Schema.findById(id, options);
+  }
+
+  remove(id) {
+    return this.Schema.destroy({ where: { id } });
+  }
+}
 
 module.exports = Facade;

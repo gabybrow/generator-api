@@ -9,7 +9,8 @@ const express = require('express'),
   routes = require('./routes'),
   logger = require('./services/logger'),
   initialize = require('./config/init')(),
-  errors = require('./model/errors'),
+  errors = require('./model/errors'),<% if (useAuthentication) { %>
+  auth = require('./auth'),<% } %>
   // path = require('path'),
   cors = require('cors');
 

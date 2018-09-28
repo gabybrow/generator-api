@@ -61,12 +61,12 @@ const serverGenerator = class extends Generator {
         message: 'Which database engine would you prefer?',
         choices: [
           {
-            name: 'MongoDB',
-            value: 'mongoose'
-          },
-          {
             name: 'PostgreSQL',
             value: 'sequelize'
+          },
+          {
+            name: 'MongoDB',
+            value: 'mongoose'
           }
         ]
       },
@@ -104,6 +104,8 @@ const serverGenerator = class extends Generator {
   }
 
   writing() {
+    if (this.useAuthentication) this.models.push(genModelNames('user'));
+
     // Config
     this.fs.copyTpl(this.templatePath('config/index.js'), this.destinationPath('config/index.js'), {
       serverName: this.serverName,
@@ -137,7 +139,8 @@ const serverGenerator = class extends Generator {
     // Routes
     this.fs.copyTpl(this.templatePath('routes.js'), this.destinationPath('routes.js'), {
       serverName: this.serverName,
-      models: this.models
+      models: this.models,
+      useAuthentication: this.useAuthentication
     });
 
     // Gitignore
@@ -197,7 +200,6 @@ const serverGenerator = class extends Generator {
     }
 
     // Model
-    if(this.useAuthentication) this.models.push('user');
     this.models.forEach(model => {
       this.fs.copyTpl(
         this.templatePath('model/controller.js'),
@@ -224,7 +226,7 @@ const serverGenerator = class extends Generator {
       );
 
       if (this.databaseEngine === 'sequelize') { 
-        if(model !== 'user') {
+        if(model.slugName !== 'user') {
           this.fs.copyTpl(
             this.templatePath(`model/${this.databaseEngine}/schema.js`),
             this.destinationPath(`model/${model.slugName}/schemas/${model.slugName}.js`),

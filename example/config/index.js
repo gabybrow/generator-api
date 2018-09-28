@@ -35,7 +35,7 @@ const config = {
     database: {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
-      name: process.env.DB_NAME || 'gaby',
+      name: process.env.DB_NAME || 'example',
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       dialect: 'postgres'
@@ -43,6 +43,9 @@ const config = {
     api: {
       bodySizeLimit: process.env.API_BODY_SIZE_LIMIT,
       parameterLimit: process.env.API_PARAMETER_LIMIT
+    },
+    bcrypt: {
+      saltRounds: process.env.SALT_ROUNDS
     },
     mailer: {
       host: process.env.MAILER_HOST,
@@ -58,12 +61,14 @@ const config = {
         pass: process.env.MAILER_PASSWORD
       },
       tls: {
-        rejectUnauthorized: false
+        ciphers: 'SSLv3'
       }
     },
     session: {
       header_name: 'authorization',
-      secret: process.env.NODE_API_SESSION_SECRET
+      secret: process.env.NODE_API_SESSION_SECRET,
+      audience: process.env.NODE_API_SESSION_AUDIENCE,
+      issuer: process.env.NODE_API_SESSION_ISSUER
     }
   }
 };
